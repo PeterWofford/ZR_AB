@@ -19,10 +19,12 @@ public class TestSquareTrajectoryMain {
 
     // Fixed trajectory orientations (POINT_1 and 2 use default orientation)
     private static final Quaternion DEFAULT_ORIENT = new Quaternion();
-    private static final Quaternion LEFT_FACING = new Quaternion(0.707f, 0, 0, 0.707f);
-    private static final Quaternion RIGHT_FACING = new Quaternion(-0.707f, 0, 0, 0.707f);
+    private static final Quaternion X_POS_ROLL = new Quaternion(0.707f, 0, 0, 0.707f);
+    private static final Quaternion X_NEG_ROLL = new Quaternion(-0.707f, 0, 0, 0.707f);
     private static final Quaternion UP_FACING = new Quaternion(0, -0.707f, 0, 0.707f);
     private static final Quaternion DOWN_FACING = new Quaternion(0, 0.707f, 0, 0.707f);
+    private static final Quaternion LEFT_FACING = new Quaternion(0, 0, 0.707f, 0.707f);
+    private static final Quaternion RIGHT_FACING = new Quaternion(0, 0, -0.707f, 0.707f);
     private static final Quaternion BACK_FACING = new Quaternion(0, 0, 1, 0);
     private static final Quaternion ORIENT_1 = new Quaternion(0, -0.3827f, 0, 0.9239f);
     private static final Quaternion ORIENT_2 = new Quaternion(0, -0.9239f, 0, 0.3827f);
@@ -30,8 +32,15 @@ public class TestSquareTrajectoryMain {
     private static final Quaternion ORIENT_4 = new Quaternion(0, 0.3827f, 0, 0.9239f);
 
     // Defining trajectory. Fixed positions and orientations. An orientation for each position.
-    private static Point[] arrayPoint = { POINT_3, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4};
-    private static Quaternion[] arrayOrient = { DEFAULT_ORIENT, ORIENT_1, DEFAULT_ORIENT, ORIENT_2, DEFAULT_ORIENT, ORIENT_3, DEFAULT_ORIENT, ORIENT_4};
+    private static Point[] arrayPoint = { POINT_3, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4};
+    private static Quaternion[] arrayOrient = {LEFT_FACING, DEFAULT_ORIENT, ORIENT_1, DEFAULT_ORIENT, ORIENT_2, DEFAULT_ORIENT, ORIENT_3, DEFAULT_ORIENT, ORIENT_4};
+
+    private static final SVector iHat = new SVector(1, 0, 0);
+    private static final SVector jHat = new SVector(0, 1, 0);
+    private static final SVector kHat = new SVector(0, 0, 1);
+    private static final SVector n_iHat = new SVector(-1, 0, 0);
+    private static final SVector n_jHat = new SVector(0, -1, 0);
+    private static final SVector n_kHat = new SVector(0, 0, -1);
 
 
     public static void main(String[] args) throws InterruptedException {
@@ -44,6 +53,14 @@ public class TestSquareTrajectoryMain {
 
         Result result;
 
+        api.setAttitudeTarget(iHat);
+        api.setAttitudeTarget(n_kHat);
+        api.setAttitudeTarget(jHat);
+        api.setAttitudeTarget(kHat);
+        api.setAttitudeTarget(n_jHat);
+        api.setAttitudeTarget(n_iHat);
+
+
         // Loop the points and orientation previously defined.
         /*
         for(int i = 0; i < 100; i++) {
@@ -51,7 +68,7 @@ public class TestSquareTrajectoryMain {
             System.out.println(api.getCurrentTime());
             Thread.sleep(1000);
         }
-        */
+
 
         for (int i = 0; i < arrayPoint.length; i++) {
             System.out.println("attempting to move to:: " + SPoint.toSPoint(arrayPoint[i]) + " with quat:: " + arrayOrient[i]);
@@ -67,6 +84,7 @@ public class TestSquareTrajectoryMain {
                 sleep(1000);
             }
         }
+        */
 
 
         /* Will print the elapsed time it took for the calls to execute above */

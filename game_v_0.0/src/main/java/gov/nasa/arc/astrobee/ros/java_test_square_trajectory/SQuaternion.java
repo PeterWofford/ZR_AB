@@ -6,7 +6,6 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 
 import java.net.URI;
-import java.util.Vector;
 
 public class SQuaternion {
     public double x = 0;
@@ -14,7 +13,7 @@ public class SQuaternion {
     public double z = 0;
     public double w = 1;
     private double[] quat_mat = {x, y, z, w};
-    private static final SVector orig_ring_norm = new SVector(0,0 ,1);
+    private static final SVector origAstrobeeNorm = new SVector(1,0 ,0);
 
 
     private static final URI ROS_MASTER_URI = URI.create("http://localhost:11311");
@@ -31,6 +30,15 @@ public class SQuaternion {
         nodeMainExecutor.execute(ringNode, nodeConfiguration);
     }
 
+    public SQuaternion() {
+    }
+
+    /**
+     * @param yaw - rotation about the Y-AXIS
+     * @param pitch - rotation about the Z-AXIS
+     * @param roll - rotation about the X-AXIS
+     * IN Y, Z, X ORDER!!!
+     */
     public SQuaternion(double yaw, double pitch, double roll) {
         yaw = Math.toRadians(yaw / 2);
         pitch = Math.toRadians(pitch / 2);
@@ -79,32 +87,24 @@ public class SQuaternion {
     }
 
     /**
-     * Method for the quaternion it will take to convert from base ring norm vector (above)
+     * Method for the quaternion it will take to convert from base ab norm vec
      * to the desired normal vector
      *
-     * IF REQUESTING NORM OF 0 0 -1 aka dot returns ~ -1, WILL RETURN QUAT FOR MAKING RING ROTATE ABOUT Z AXIS 180
+     * IF REQUESTING NORM OF -1 0 0 aka dot returns ~ -1, WILL RETURN QUAT FOR MAKING AB ROTATE ABOUT Z AXIS 180
      *
      * @param desired is the vector you want to reach
      * @return SQuaternion object that specifies correct rotation quaternion for the task
      */
     public static SQuaternion vecDiffToQuat(SVector desired) {
-        SQuaternion q = new SQuaternion(0, 0, 0, 1);
-        desired.normalize();
-        if (SVector.dot(orig_ring_norm, desired) > 0.999) {
-            return new SQuaternion(0, 0, 0, 1);
-        } else if (SVector.dot(orig_ring_norm, desired) < -0.999) {
-            return new SQuaternion(0, 0, 1, 0);
-        } else {
-            SVector cross = orig_ring_norm.cross(desired);
-            q.x = cross.x;
-            q.y = cross.y;
-            q.z = cross.z;
-            q.w = Math.sqrt(Math.pow(desired.length(), 2)) + SVector.dot(orig_ring_norm, desired);
-            q.norm();
-        }
-        return q;
+        return vecDiffToQuat(origAstrobeeNorm, desired);
     }
 
+    /**
+     * method used for
+     * @param origNorm
+     * @param desired
+     * @return
+     */
     public static SQuaternion vecDiffToQuat(SVector origNorm, SVector desired) {
         SQuaternion q = new SQuaternion(0, 0, 0, 1);
         desired.normalize();
@@ -165,7 +165,7 @@ public class SQuaternion {
         v.x = Math.toDegrees(v.x);
         v.y = Math.toDegrees(v.y);
         v.z = Math.toDegrees(v.z);
-        // yaw, pitch, and roll
+        // yaw, pitch, roll; or heading, attitude, bank; or Y, Z, X rotations, in that order
         return v;
     }
 
@@ -177,7 +177,7 @@ public class SQuaternion {
         return ringNode.ring2_orient;
     }
 
-    public static SVector rotateVecByQuat( SVector in, SQuaternion rotation) {
+    public static SVector rotateVecByQuat(SVector in, SQuaternion rotation) {
         // Normalize first
         rotation.norm();
         // Extract vector part of quat
@@ -208,7 +208,7 @@ public class SQuaternion {
         for (double x: val) {
             System.out.println(x);
         }
-*/
+
 
         exec(DefaultNodeMainExecutor.newDefault());
         Thread.sleep(3000);

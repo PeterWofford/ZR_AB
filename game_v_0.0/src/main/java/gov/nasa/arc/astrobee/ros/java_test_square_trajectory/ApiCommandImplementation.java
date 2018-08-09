@@ -94,9 +94,9 @@ public class ApiCommandImplementation {
     private static SQuaternion orient_manager = new SQuaternion(0, 0, 0, 1);
 
     /* Keep Out Zones */
-    private final KeepOutZoneRingWPlants test_ring_1 = new KeepOutZoneRingWPlants(new SPoint(3,0.5,4.9), 0.6, 0.2, new SVector(0,-1,0), Math.PI);
+    private final KeepOutZoneRingWPlants test_ring_1 = new KeepOutZoneRingWPlants(new SPoint(3,0.5,4.9), 0.6, 0.2, new SVector(0,-1,0), Math.PI / 4);
     /*  ^^ Quaternion of [0.7071, 0, 0, 0.7071] ^^      */
-    private final KeepOutZoneRingWPlants test_ring_2 = new KeepOutZoneRingWPlants(new SPoint(1,-0.5,4.9),0.6, 0.2,  new SVector(0,1,0), Math.PI);
+    private final KeepOutZoneRingWPlants test_ring_2 = new KeepOutZoneRingWPlants(new SPoint(1,-0.5,4.9),0.6, 0.2,  new SVector(0,1,0), Math.PI / 4);
     /*  ^^ Quaternion of [-0.7071, 0, 0, 0.7071] ^^    */
     private final KeepOutZoneRingWPlants[] ringsWPlants = { test_ring_1, test_ring_2 };
 
@@ -294,6 +294,32 @@ public class ApiCommandImplementation {
         return result;
     }
 
+    public SQuaternion getOrientation() {
+        return new SQuaternion(getTrustedRobotKinematics().getOrientation());
+    }
+
+    public SPoint getPosition() {
+        return SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
+    }
+
+    /**
+     * Takes in a direction vector and sets it as target
+     * @param x vec compoment in world x
+     * @param y vec component in world y
+     * @param z vec component in world z
+     */
+    public void setAttitudeTarget(double x, double y, double z) {
+        SVector target = new SVector(x, y, z);
+        setAttitudeTarget(target);
+    }
+
+    public void setAttitudeTarget(SVector target) {
+        target.normalize();
+        SQuaternion orient = SQuaternion.vecDiffToQuat(target);
+        Quaternion qOrient = new Quaternion((float) orient.x, (float) orient.y, (float) orient.z, (float) orient.w);
+        moveToValid(getTrustedRobotKinematics().getPosition(), qOrient);
+    }
+
     /**
      * Checks if the Astrobee destination will work given the KOZs
      * @param goalPoint (xyz) point you want to test if valid
@@ -435,8 +461,16 @@ public class ApiCommandImplementation {
     *   1 - score
     *   also modifies the game score accordingly and keeps track of pollination attempts
      */
+
+    /**
+     * Executes the pollination command for the Astrobee, shines the flashlight and returns an
+     * integer of the result, codes being 0 for misfire, -1 for not in ring, -2 for flashlight error
+     * if ring integer, tells the ring number scored in
+     * @return the integer code result
+     */
     public int pollinate() {
 
+        /*  Kinematic object for accessing astrobee pose */
         Kinematics k;
         k = getTrustedRobotKinematics();
 
@@ -444,10 +478,15 @@ public class ApiCommandImplementation {
         SQuaternion abOrient = new SQuaternion(k.getOrientation());
 
         int kozLength = ringsWPlants.length;
+        /*  array for holding results for each ring
+        *   with 0 being out of ring, 1 being successful,
+        *   -1 being a miss */
         int[] results = new int[kozLength];
 
+        /*  counter for if in ring */
         int outOfRingCount = 0;
 
+        /*  increments the pollination attempts */
         ABInfo.incrementAttempts();
 
         for (int i = 0; i < kozLength; i++) {
@@ -462,10 +501,13 @@ public class ApiCommandImplementation {
                     ringOrient = SQuaternion.getRing1Quat();
                 } else if (i == 1) {
                     ringOrient = SQuaternion.getRing2Quat();
-                } else break;
+                } else break; // if greater than numRings break!!
+
                 // newPollen being collected/given to, prevPollen is donor
                 String newPollen = ringsWPlants[i].scoreOnRing(abOrient, ringOrient);
                 String prevPollen = ABInfo.getPollenType();
+
+                // handles if successful hit
                 if (StringUtils.isEmpty(newPollen)){
                     results[i] = -1;
                     ABInfo.changeScore(Pollen.getMissPenalty());
@@ -475,6 +517,8 @@ public class ApiCommandImplementation {
                     ABInfo.incrementSuccess();
                     ScoreManager.updateh(false, newPollen);
                 }
+
+                // handles scoring logic in terms of pollen types
                 if (StringUtils.isNotEmpty(prevPollen) && StringUtils.isNotEmpty(newPollen)) {
                     if (Pollen.prevCanGiveTo(prevPollen, newPollen)) {
                         ABInfo.changeScore(Pollen.getPollinateScore(newPollen));
@@ -489,15 +533,21 @@ public class ApiCommandImplementation {
             }
         }
 
+
         ScoreManager.updateratio(ABInfo.getScore(), ABInfo.getPollinateSuccesses(), ABInfo.getPollinateAttempts());
         ScoreManager.updategui();
 
+
+        /*  handles the shining of the flashlight  */
         try {
             flashlightShine();
         } catch (InterruptedException e) {
             e.printStackTrace();
+            /* if the flashlight did not shine, want to return this */
             return FLASHLIGHT_ERROR;
         }
+
+        /*  returns the appropriate scoring if flashlight shined correctly  */
         for (int r = 0; r < results.length; r++) {
             if (results[r] == 1) {
                 if (r == 0){
@@ -506,6 +556,7 @@ public class ApiCommandImplementation {
                     return SCORE_RING_TWO;
             }
         }
+
         if (outOfRingCount == kozLength) {
             System.out.println("NOT IN ANY RINGS");
             return NOT_IN_RING_ERROR;

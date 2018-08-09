@@ -192,4 +192,8 @@ public class ZR_API {
 
         logger.info("Done");
     }
+
+    ApiCommandImplementation api = ApiCommandImplementation.getInstance();
+
+
 }

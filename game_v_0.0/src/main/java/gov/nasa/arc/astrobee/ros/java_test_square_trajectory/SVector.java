@@ -133,6 +133,12 @@ class SVector {
         return new String("[" + SPoint.round(x, 3) + ", " + SPoint.round(y, 3) + ", " + SPoint.round(z, 3) + "]");
     }
 
+    public boolean equals(SVector other) {
+        if(x == other.x && y == other.y && z == other.z)
+            return true;
+        return false;
+    }
+
     public static double scalar_projection(SVector vec1, SVector vec2){
 
         //PROJECTION OF VEC2 ONTO VEC1
@@ -145,14 +151,30 @@ class SVector {
         }
     }
 
+    /**
+     * Assumes input vector is not zero
+     * gives a unit vector normal to your current vector
+     * @param in SVector you want a normal vector to
+     * @return unit SVector normal to input vector
+     */
+    public SVector getVecNormalTo(SVector in) {
+        SVector inNorm = normalize(in);
+        SVector iHat = new SVector(1,0,0);
+        if (!(inNorm.equals(iHat) || inNorm.equals(iHat.negate()))) {
+            return normalize(inNorm.cross(iHat));
+        }
+        SVector jHat = new SVector(0, 1, 0);
+        return normalize(inNorm.cross(jHat));
+    }
+
 
     /**
      * @param norm - normal vector to be rotated about
-     * @param vec - vector to be rotated about
-     * @param theta - angle amount to rotate by
+     * @param vec - vector to be rotated
+     * @param theta - angle amount to rotate by (in radians)
      * @return SVector of newly rotated vector
      */
-    public static SVector rodriguezRotation(SVector norm, SVector vec, double theta){
+    public static SVector rodriguezRotation(SVector norm, SVector vec, double theta) {
         SVector e1 = vec.scalarMultiply(Math.cos(theta));
         SVector e2 = SVector.cross(norm, vec).scalarMultiply(Math.sin(theta));
         SVector e3 = norm.scalarMultiply(SVector.dot(norm, vec)*(1-Math.cos(theta)));
