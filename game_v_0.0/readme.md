@@ -1,9 +1,9 @@
-# Simple Square Trajectory Example
+# ZR trajectory project
 
-This example is meant to be a quick introduction to the Astrobee API 
-Development. This project has been wrote to be independent of the
-API source. In order to do that we use jar libraries to import
-the code for the Astrobee API and Freeflyer ROS messages.
+This project is based off an example meant to be a quick introduction 
+to the Astrobee API Development. This project has been wrote to be 
+independent of the API source. In order to do that we use jar libraries 
+to import the code for the Astrobee API and Freeflyer ROS messages.
 
 *Note the APIs may change in time. Ensure to have the ultimate version of the
 jar libraries.*
@@ -12,11 +12,11 @@ jar libraries.*
 
 ### Building the code
 
-First, we build the example. Assuming that `freeflyer_android` is checked out 
-in `$ANDROID_PATH`:
+First, we build the example. Assuming that this repository is checked out
+under `ZR_AB` :
 
-    you@machine:~ $ cd $ANDROID_PATH/java_test_square_trajectory
-    you@machine:java_test_square_trajectory $ ./gradlew build
+    you@machine:~ $ cd $ZR_AB/game_v_0.0
+    you@machine:game_v_0.0 $ ./gradlew build
 
 ### Setup environmental variables
 
@@ -32,7 +32,7 @@ locally:
 
 In one terminal, with the environment variables setup:
 
-    you@machine:~ $ roslaunch astrobee sim.launch
+    you@machine:~ $ roslaunch astrobee sim.launch sviz:=true
     ...
 
 ### (Option 1) Run the example using Gradle
@@ -40,8 +40,8 @@ In one terminal, with the environment variables setup:
 In another terminal, with the environment setup properly:
 
     export ROS_MASTER_URI=http://${ROS_IP}:11311/
-    you@machine:~ $ cd $ANDROID_PATH/java_test_square_trajectory
-    you@machine:java_test_square_trajectory $ ./gradlew run
+    you@machine:~ $ cd $ZR_AB/game_v_0.0
+    you@machine:game_v_0.0 $ ./gradlew run
     ...
 
 ### (Option 2) Run the example using Java VM
@@ -51,20 +51,20 @@ In another terminal, with the environment setup properly:
 In another terminal, with the environment setup properly:
 
     export ROS_MASTER_URI=http://${ROS_IP}:11311/
-    you@machine:~ $ cd $ANDROID_PATH/java_test_square_trajectory
-    you@machine:java_test_square_trajectory $ ./gradlew jar
+    you@machine:~ $ cd $ZR_AB/game_v_0.0
+    you@machine:game_v_0.0 $ ./gradlew jar
     ...
 
 #### Run file
 
 In the same terminal and assuming you have Java installed. Execute:
 
-    java -jar build/libs/java_test_square_trajectory-1.0-SNAPSHOT.jar
+    java -jar build/libs/game_v_0.0-1.0-SNAPSHOT.jar
 
 ## Importing into IntelliJ IDEA
 
  * Open IntelliJ and click `Import Project`.
- * Navigate to the root of the `java_test_square_trajectory` directory (this directory)
+ * Navigate to the root of the `ZR_AB` directory (this directory)
  * Select `Import project from external model`
  * Select `Gradle`
  * Click `Next`
