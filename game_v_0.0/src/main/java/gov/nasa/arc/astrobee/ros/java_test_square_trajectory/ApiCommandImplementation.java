@@ -38,8 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * A simple API implementation tool that provides an easier way to work with the Astrobee API
- * This is a minimal version
+ * A simple API implementation for sending commands to the Astrobee for an interactive game.
  */
 
 public class ApiCommandImplementation {
@@ -84,7 +83,7 @@ public class ApiCommandImplementation {
 
 
     //The Game Variables
-    /* Astrobee should start at 2, 0, 4.8 */
+    /* Astrobee should start at 2, 0, 4.9 */
     // AB info object only hold info about pollen collection and general game logic stuffs
     private static ABInfo myAstrobeeInfo = ABInfo.getABInfoInstance();
 
@@ -94,9 +93,11 @@ public class ApiCommandImplementation {
     private static SQuaternion orient_manager = new SQuaternion(0, 0, 0, 1);
 
     /* Keep Out Zones */
-    private final KeepOutZoneRingWPlants test_ring_1 = new KeepOutZoneRingWPlants(new SPoint(3,0.5,4.9), 0.6, 0.2, new SVector(0,-1,0), Math.PI / 4);
+    private final KeepOutZoneRingWPlants test_ring_1 = new KeepOutZoneRingWPlants(new SPoint(3,0.5,4.9),
+            0.6, 0.2, new SVector(0,-1,0), Math.PI / 4);
     /*  ^^ Quaternion of [0.7071, 0, 0, 0.7071] ^^      */
-    private final KeepOutZoneRingWPlants test_ring_2 = new KeepOutZoneRingWPlants(new SPoint(1,-0.5,4.9),0.6, 0.2,  new SVector(0,1,0), Math.PI / 4);
+    private final KeepOutZoneRingWPlants test_ring_2 = new KeepOutZoneRingWPlants(new SPoint(1,-0.5,4.9),
+            0.6, 0.2,  new SVector(0,1,0), Math.PI / 4);
     /*  ^^ Quaternion of [-0.7071, 0, 0, 0.7071] ^^    */
     private final KeepOutZoneRingWPlants[] ringsWPlants = { test_ring_1, test_ring_2 };
 
@@ -241,7 +242,7 @@ public class ApiCommandImplementation {
      *
      * @return
      */
-    public Kinematics getTrustedRobotKinematics() {
+    private Kinematics getTrustedRobotKinematics() {
         logger.info("Waiting for robot to acquire position");
 
         // Variable that will keep all data related to positioning and movement.
@@ -294,13 +295,28 @@ public class ApiCommandImplementation {
         return result;
     }
 
-    public SQuaternion getOrientation() {
-        return new SQuaternion(getTrustedRobotKinematics().getOrientation());
+
+    public class ZR_API {
+        public double[] getOrientation() {
+            SQuaternion q =  new SQuaternion(getTrustedRobotKinematics().getOrientation());
+            return q.getQuat();
+        }
+
+        public double[] getPosition() {
+            SPoint p = SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
+            return p.getMy_coords();
+        }
+
+
     }
 
-    public SPoint getPosition() {
-        return SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
-    }
+//    public SQuaternion getOrientation() {
+//        return new SQuaternion(getTrustedRobotKinematics().getOrientation());
+//    }
+//
+//    public SPoint getPosition() {
+//        return SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
+//    }
 
     /**
      * Takes in a direction vector and sets it as target
@@ -397,6 +413,7 @@ public class ApiCommandImplementation {
      * @return just an int for now
      * @throws InterruptedException (in case flashlight fails or gets interrupted)
      */
+    // COMMENTED OUT BECAUSE WE SWITCHED TO CONNECTING TO RING NODES THEMSELVES
 /*
     public int pollinate() {
 
@@ -499,11 +516,12 @@ public class ApiCommandImplementation {
                 SQuaternion ringOrient;
                 if (i == 0) {
                     ringOrient = SQuaternion.getRing1Quat();
+//                    System.out.println(ringOrient);
                 } else if (i == 1) {
                     ringOrient = SQuaternion.getRing2Quat();
                 } else break; // if greater than numRings break!!
 
-                // newPollen being collected/given to, prevPollen is donor
+                // newPollen being collected / given to, prevPollen is donor
                 String newPollen = ringsWPlants[i].scoreOnRing(abOrient, ringOrient);
                 String prevPollen = ABInfo.getPollenType();
 
@@ -557,10 +575,10 @@ public class ApiCommandImplementation {
             }
         }
 
-        if (outOfRingCount == kozLength) {
-            System.out.println("NOT IN ANY RINGS");
-            return NOT_IN_RING_ERROR;
-        }
+//        if (outOfRingCount == kozLength) {
+//            System.out.println("NOT IN ANY RINGS");
+//            return NOT_IN_RING_ERROR;
+//        }
         return MISS_ERROR;
     }
 
