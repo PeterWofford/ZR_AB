@@ -309,8 +309,14 @@ public class ApiCommandImplementation {
         }
     }
     public class Game_API {
+        private void setAttitudeTarget(double x, double y, double z) {
+            SVector target = new SVector(x, y, z);
+            setAttitudeTarget(target);
+        }
 
-
+        public void setAttitudeTarget(SVector target) {
+            ApiCommandImplementation.this.setAttitudeTarget(target);
+        }
     }
 
 //    public SQuaternion getOrientation() {
@@ -327,12 +333,12 @@ public class ApiCommandImplementation {
      * @param y vec component in world y
      * @param z vec component in world z
      */
-    public void setAttitudeTarget(double x, double y, double z) {
+    private void setAttitudeTarget(double x, double y, double z) {
         SVector target = new SVector(x, y, z);
         setAttitudeTarget(target);
     }
 
-    public void setAttitudeTarget(SVector target) {
+    private void setAttitudeTarget(SVector target) {
         target.normalize();
         SQuaternion orient = SQuaternion.vecDiffToQuat(target);
         Quaternion qOrient = new Quaternion((float) orient.x, (float) orient.y, (float) orient.z, (float) orient.w);
@@ -383,7 +389,7 @@ public class ApiCommandImplementation {
      *                    You may want to use INITIAL_POSITION as an example.
      * @return An int corresponding to the result of the action.
      */
-    public int moveToValid(Point goalPoint, Quaternion orientation) {
+    private int moveToValid(Point goalPoint, Quaternion orientation) {
         if (!validWaypoint(goalPoint)) {
             return VALIDATE_ERROR;
         } else {
@@ -396,7 +402,7 @@ public class ApiCommandImplementation {
         }
     }
 
-    public double getCurrentTime(){
+    private double getCurrentTime(){
         System.out.println(start_time);
         double currT  = time.getTime();
         System.out.println(currT);
@@ -488,7 +494,7 @@ public class ApiCommandImplementation {
      * if ring integer, tells the ring number scored in
      * @return the integer code result
      */
-    public int pollinate() {
+    private int pollinate() {
 
         /*  Kinematic object for accessing astrobee pose */
         Kinematics k;
