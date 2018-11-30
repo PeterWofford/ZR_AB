@@ -63,7 +63,7 @@ public class ApiCommandImplementation {
     private static final int MISS_ERROR = 0;
     private static final int NOT_IN_RING_ERROR = -1;
     private static final int FLASHLIGHT_ERROR = -2;
-
+    private Thread t = null;
 
     // The instance to access this class
     private static ApiCommandImplementation instance = null;
@@ -104,6 +104,9 @@ public class ApiCommandImplementation {
 
     /* Game score */
     private int score = 0;
+
+    /*WayPoint Queue*/
+    public ConcurrentLinkedDeque<WayPoint> WaypointQueue = new ConcurrentLinkedDeque<WayPoint>();
 
     public int getScore() {
         return ABInfo.getScore();
@@ -177,11 +180,11 @@ public class ApiCommandImplementation {
     /**
      * This method shutdown the robot factory in order to allow java to close correctly.
      */
-    public void shutdownFactory() {
+    private void shutdownFactory() {
         factory.shutdown();
     }
 
-    public Result getCommandResult(PendingResult pending, boolean printRobotPosition) {
+    private Result getCommandResult(PendingResult pending, boolean printRobotPosition) {
 
         Result result = null;
 
@@ -298,7 +301,6 @@ public class ApiCommandImplementation {
 
 
     public class ZR_API {
-        public ConcurrentLinkedDeque<WayPoint> WaypointQueue = new ConcurrentLinkedDeque<WayPoint>();
         public double[] getOrientation() {
             SQuaternion q =  new SQuaternion(getTrustedRobotKinematics().getOrientation());
             return q.getQuat();
@@ -307,6 +309,9 @@ public class ApiCommandImplementation {
         public double[] getPosition() {
             SPoint p = SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
             return p.getMy_coords();
+        }
+        public void add(WayPoint wp){
+            ApiCommandImplementation.this.WaypointQueue.add(wp);
         }
     }
     public class Game_API {
@@ -320,13 +325,13 @@ public class ApiCommandImplementation {
         }
     }
 
-//    public SQuaternion getOrientation() {
-//        return new SQuaternion(getTrustedRobotKinematics().getOrientation());
-//    }
-//
-//    public SPoint getPosition() {
-//        return SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
-//    }
+    public SQuaternion getOrientation() {
+        return new SQuaternion(getTrustedRobotKinematics().getOrientation());
+    }
+
+    public SPoint getPosition() {
+        return SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
+    }
 
     /**
      * Takes in a direction vector and sets it as target
@@ -643,5 +648,25 @@ public class ApiCommandImplementation {
 
         return result.hasSucceeded();
     }
+    public void runThread(){
+        if (t == null) {
+            t = new Thread() {
+                public void run() {
+                    try {
+                        System.out.println("Loop");
+//                        this.setAttitudeTarget(iHat);
+//                        this.setAttitudeTarget(n_kHat);
+//                        this.setAttitudeTarget(jHat);
+//                        this.setAttitudeTarget(kHat);
+//                        this.setAttitudeTarget(n_jHat);
 
+                        Thread.sleep(1000);
+                    }catch(InterruptedException e){
+                        e.printStackTrace();
+                    }
+                }
+            };
+        }
+        t.start();
+    }
 }

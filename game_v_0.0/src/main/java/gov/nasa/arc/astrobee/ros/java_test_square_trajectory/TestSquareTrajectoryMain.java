@@ -9,6 +9,12 @@ import static java.lang.Thread.*;
 
 public class TestSquareTrajectoryMain {
 
+    private static Thread t;
+
+    private static ApiCommandImplementation astrobee = ApiCommandImplementation.getInstance();
+    private static ApiCommandImplementation.ZR_API api= astrobee.new ZR_API();
+    private static ApiCommandImplementation.Game_API game = astrobee.new Game_API();
+
     // Fixed trajectory points
     private static final Point HOME_POSITION = new Point(2, 0, 4.9);
     private static final Point POINT_1 = new Point(1, 0, 4.9);
@@ -48,19 +54,19 @@ public class TestSquareTrajectoryMain {
         setDefaultUncaughtExceptionHandler(new UnhandledExceptionHandler());
 
         // Get a unique instance of the Astrobee API in order to command the robot.
-        ApiCommandImplementation astrobee = ApiCommandImplementation.getInstance();
-        ApiCommandImplementation.ZR_API api= ApiCommandImplementation.new ZR_API();
-        ApiCommandImplementation.Game_API game = ApiCommandImplementation.new Game_API();
         ABInfo abInfo = ABInfo.getABInfoInstance();
 
         Result result;
+        //Starting threads
+        astrobee.runThread();
+        RunPlayerThread();
 
-        astrobee.setAttitudeTarget(iHat);
-        astrobee.setAttitudeTarget(n_kHat);
-        astrobee.setAttitudeTarget(jHat);
-        astrobee.setAttitudeTarget(kHat);
-        astrobee.setAttitudeTarget(n_jHat);
-        astrobee.setAttitudeTarget(n_iHat);
+//        astrobee.setAttitudeTarget(iHat);
+//        astrobee.setAttitudeTarget(n_kHat);
+//        astrobee.setAttitudeTarget(jHat);
+//        astrobee.setAttitudeTarget(kHat);
+//        astrobee.setAttitudeTarget(n_jHat);
+//        astrobee.setAttitudeTarget(n_iHat);
 
 
         // Loop the points and orientation previously defined.
@@ -93,6 +99,22 @@ public class TestSquareTrajectoryMain {
        // System.out.println("This is the amount of time it took::" + startUpTest.timeElapsed(System.currentTimeMillis()));
 
         // Stop the API
-        astrobee.shutdownFactory();
+//        astrobee.shutdownFactory();
+    }
+    public static void RunPlayerThread() {
+        if (t == null) {
+            t = new Thread() {
+                public void run() {
+                    try {
+                        game.setAttitudeTarget(null);
+                        api.add(null);
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            };
+        }
     }
 }
