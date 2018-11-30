@@ -56,6 +56,6 @@ public class SampleTrajectory {
         */
 
         // Stop the API
-        api.shutdownFactory();
+        // api.shutdownFactory();
     }
 }
