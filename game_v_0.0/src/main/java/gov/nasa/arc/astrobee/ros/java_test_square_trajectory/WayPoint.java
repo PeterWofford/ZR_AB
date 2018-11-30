@@ -34,7 +34,7 @@ public class WayPoint {
         return my_point.getMy_coords();
     }
 
-    public double[] get_way_point_quat() {
+    public double[] get_waypoint_quat() {
         return my_quat.getQuat();
     }
 }

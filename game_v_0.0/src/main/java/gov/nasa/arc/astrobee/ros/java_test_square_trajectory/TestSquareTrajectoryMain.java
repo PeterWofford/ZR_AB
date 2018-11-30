@@ -14,6 +14,7 @@ public class TestSquareTrajectoryMain {
     private static ApiCommandImplementation astrobee = ApiCommandImplementation.getInstance();
     private static ApiCommandImplementation.ZR_API api= astrobee.new ZR_API();
     private static ApiCommandImplementation.Game_API game = astrobee.new Game_API();
+    private static PlayerTemplate PlayerCode = new PlayerTemplate();
 
     // Fixed trajectory points
     private static final Point HOME_POSITION = new Point(2, 0, 4.9);
@@ -108,11 +109,11 @@ public class TestSquareTrajectoryMain {
                     try {
                         game.setAttitudeTarget(null);
                         api.add(null);
+                        PlayerCode.loop();
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-
                 }
             };
         }

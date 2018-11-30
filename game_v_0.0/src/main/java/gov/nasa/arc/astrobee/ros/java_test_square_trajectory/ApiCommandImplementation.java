@@ -648,6 +648,17 @@ public class ApiCommandImplementation {
 
         return result.hasSucceeded();
     }
+
+    private void execute(){
+        WayPoint executing = WaypointQueue.pop();
+        double[] coords = executing.get_waypoint_point();
+        Point destination = new Point(coords[0],coords[1],coords[2]);
+        double[] angles = executing.get_waypoint_quat();
+        Quaternion quat = new Quaternion((float)(angles[0]),(float)(angles[1]),(float)(angles[2]),(float)(angles[3]));
+        moveToValid(destination, quat);
+
+    }
+
     public void runThread(){
         if (t == null) {
             t = new Thread() {
@@ -659,7 +670,7 @@ public class ApiCommandImplementation {
 //                        this.setAttitudeTarget(jHat);
 //                        this.setAttitudeTarget(kHat);
 //                        this.setAttitudeTarget(n_jHat);
-
+                        execute();
                         Thread.sleep(1000);
                     }catch(InterruptedException e){
                         e.printStackTrace();
