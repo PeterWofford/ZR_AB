@@ -93,6 +93,6 @@ public class TestSquareTrajectoryMain {
        // System.out.println("This is the amount of time it took::" + startUpTest.timeElapsed(System.currentTimeMillis()));
 
         // Stop the API
-        api.shutdownFactory();
+        astrobee.shutdownFactory();
     }
 }
