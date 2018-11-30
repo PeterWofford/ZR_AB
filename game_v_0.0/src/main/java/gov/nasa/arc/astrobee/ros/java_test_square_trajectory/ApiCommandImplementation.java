@@ -315,7 +315,7 @@ public class ApiCommandImplementation {
         }
     }
     public class Game_API {
-        private void setAttitudeTarget(double x, double y, double z) {
+        public void setAttitudeTarget(double x, double y, double z) {
             SVector target = new SVector(x, y, z);
             setAttitudeTarget(target);
         }
@@ -323,6 +323,8 @@ public class ApiCommandImplementation {
         public void setAttitudeTarget(SVector target) {
             ApiCommandImplementation.this.setAttitudeTarget(target);
         }
+        //TODO: Implement Ring info methods
+
     }
 
     public SQuaternion getOrientation() {
