@@ -297,6 +297,8 @@ public class ApiCommandImplementation {
 
 
     public class ZR_API {
+        private ConcurrentLinkedDeque<WayPoint> WaypointQueue = new ConcurrentLinkedDeque<WayPoint>();
+        private int capacity = 5000; //Number of waypoints allowed
         public double[] getOrientation() {
             SQuaternion q =  new SQuaternion(getTrustedRobotKinematics().getOrientation());
             return q.getQuat();
@@ -306,6 +308,8 @@ public class ApiCommandImplementation {
             SPoint p = SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
             return p.getMy_coords();
         }
+        //WayPointDeque Methods:
+
 
 
     }
