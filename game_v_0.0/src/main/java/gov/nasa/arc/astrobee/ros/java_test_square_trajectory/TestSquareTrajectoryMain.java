@@ -48,17 +48,19 @@ public class TestSquareTrajectoryMain {
         setDefaultUncaughtExceptionHandler(new UnhandledExceptionHandler());
 
         // Get a unique instance of the Astrobee API in order to command the robot.
-        ApiCommandImplementation api = ApiCommandImplementation.getInstance();
+        ApiCommandImplementation astrobee = ApiCommandImplementation.getInstance();
+        ApiCommandImplementation.ZR_API api= ApiCommandImplementation.new ZR_API();
+        ApiCommandImplementation.Game_API game = ApiCommandImplementation.new Game_API();
         ABInfo abInfo = ABInfo.getABInfoInstance();
 
         Result result;
 
-        api.setAttitudeTarget(iHat);
-        api.setAttitudeTarget(n_kHat);
-        api.setAttitudeTarget(jHat);
-        api.setAttitudeTarget(kHat);
-        api.setAttitudeTarget(n_jHat);
-        api.setAttitudeTarget(n_iHat);
+        astrobee.setAttitudeTarget(iHat);
+        astrobee.setAttitudeTarget(n_kHat);
+        astrobee.setAttitudeTarget(jHat);
+        astrobee.setAttitudeTarget(kHat);
+        astrobee.setAttitudeTarget(n_jHat);
+        astrobee.setAttitudeTarget(n_iHat);
 
 
         // Loop the points and orientation previously defined.
