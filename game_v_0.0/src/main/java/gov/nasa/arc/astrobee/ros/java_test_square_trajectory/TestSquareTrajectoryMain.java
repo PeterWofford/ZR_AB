@@ -102,13 +102,20 @@ public class TestSquareTrajectoryMain {
         // Stop the API
 //        astrobee.shutdownFactory();
     }
+    static int i = 0;
     public static void RunPlayerThread() {
+
         if (t == null) {
             t = new Thread() {
                 public void run() {
+                    if (i == 0){
+                        WayPoint test1 = new WayPoint(0,0.6,5.1,0.707,0,0,0.707);
+                        WayPoint base = new WayPoint();
+                        i++;
+                        api.add(test1);
+                        api.add(base);
+                    }
                     try {
-                        game.setAttitudeTarget(null);
-                        api.add(null);
                         PlayerCode.loop();
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {

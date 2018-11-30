@@ -6,6 +6,7 @@ public class PlayerTemplate{
     //Setup
     public PlayerTemplate(){
 
+
     }
 
     //Continuous loop
