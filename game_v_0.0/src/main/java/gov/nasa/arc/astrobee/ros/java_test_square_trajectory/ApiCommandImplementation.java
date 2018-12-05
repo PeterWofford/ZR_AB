@@ -34,9 +34,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.Collections;
+//import java.util.concurrent.TimeUnit;
+//import java.util.concurrent.TimeoutException;
+//import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.*;
 
 /**
  * A simple API implementation for sending commands to the Astrobee for an interactive game.
@@ -106,7 +108,7 @@ public class ApiCommandImplementation {
     private int score = 0;
 
     /*WayPoint Queue*/
-    public ConcurrentLinkedDeque<WayPoint> WaypointQueue = new ConcurrentLinkedDeque<WayPoint>();
+    private List<WayPoint> WaypointQueue;
 
     public int getScore() {
         return ABInfo.getScore();
@@ -126,6 +128,7 @@ public class ApiCommandImplementation {
          */
 
         factory = new DefaultRobotFactory();
+        WaypointQueue = Collections.synchronizedList(new ArrayList<WayPoint>());
 
         try {
             // Get the robot
@@ -283,7 +286,7 @@ public class ApiCommandImplementation {
      * @return A Result instance carrying data related to the execution.
      * Returns null if the command was NOT execute as a result of an error
      */
-    private Result moveTo(Point goalPoint, Quaternion orientation) {
+    public Result moveTo(Point goalPoint, Quaternion orientation) {
 
         // First, stop all motion
         Result result = stopAllMotion();
@@ -397,7 +400,7 @@ public class ApiCommandImplementation {
      *                    You may want to use INITIAL_POSITION as an example.
      * @return An int corresponding to the result of the action.
      */
-    private int moveToValid(Point goalPoint, Quaternion orientation) {
+    public int moveToValid(Point goalPoint, Quaternion orientation) {
         if (!validWaypoint(goalPoint)) {
             return VALIDATE_ERROR;
         } else {
@@ -652,12 +655,17 @@ public class ApiCommandImplementation {
     }
 
     private void execute(){
-        WayPoint executing = WaypointQueue.pop();
-        double[] coords = executing.get_waypoint_point();
-        Point destination = new Point(coords[0],coords[1],coords[2]);
-        double[] angles = executing.get_waypoint_quat();
-        Quaternion quat = new Quaternion((float)(angles[0]),(float)(angles[1]),(float)(angles[2]),(float)(angles[3]));
-        moveToValid(destination, quat);
+        if (WaypointQueue.size() > 0){
+            WayPoint executing = WaypointQueue.remove(0);
+            double[] coords = executing.get_waypoint_point();
+            Point destination = new Point(coords[0],coords[1],coords[2]);
+            double[] angles = executing.get_waypoint_quat();
+            Quaternion quat = new Quaternion((float)(angles[0]),(float)(angles[1]),(float)(angles[2]),(float)(angles[3]));
+            moveTo(destination, quat);
+        }else{
+            System.out.println("Queue is Empty!");
+        }
+
 
     }
 
@@ -665,17 +673,19 @@ public class ApiCommandImplementation {
         if (t == null) {
             t = new Thread() {
                 public void run() {
-                    try {
-                        System.out.println("Loop");
-//                        this.setAttitudeTarget(iHat);
-//                        this.setAttitudeTarget(n_kHat);
-//                        this.setAttitudeTarget(jHat);
-//                        this.setAttitudeTarget(kHat);
-//                        this.setAttitudeTarget(n_jHat);
-                        execute();
-                        Thread.sleep(1000);
-                    }catch(InterruptedException e){
-                        e.printStackTrace();
+                    while(true) {
+                        try {
+                            System.out.println("Loop");
+                            //                        this.setAttitudeTarget(iHat);
+                            //                        this.setAttitudeTarget(n_kHat);
+                            //                        this.setAttitudeTarget(jHat);
+                            //                        this.setAttitudeTarget(kHat);
+                            //                        this.setAttitudeTarget(n_jHat);
+                            execute();
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             };

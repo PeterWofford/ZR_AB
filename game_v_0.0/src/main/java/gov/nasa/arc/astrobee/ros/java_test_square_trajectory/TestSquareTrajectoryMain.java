@@ -59,8 +59,13 @@ public class TestSquareTrajectoryMain {
 
         Result result;
         //Starting threads
-        astrobee.runThread();
-        RunPlayerThread();
+        Point destination = new Point(0,0.6,5.1);
+        Quaternion quat = new Quaternion(0.707f,0f,0f,0.707f);
+        astrobee.moveTo(destination,quat);
+//        astrobee.runThread();
+//        System.out.println("Started Astrobee Thread!");
+//        RunPlayerThread();
+//        System.out.println("Started Player Thread!");
 
 //        astrobee.setAttitudeTarget(iHat);
 //        astrobee.setAttitudeTarget(n_kHat);
@@ -110,10 +115,11 @@ public class TestSquareTrajectoryMain {
                 public void run() {
                     if (i == 0){
                         WayPoint test1 = new WayPoint(0,0.6,5.1,0.707,0,0,0.707);
-                        WayPoint base = new WayPoint();
+//                        WayPoint base = new WayPoint();
                         i++;
                         api.add(test1);
-                        api.add(base);
+//                        api.add(base);
+                        System.out.println("Added WayPoint");
                     }
                     try {
                         PlayerCode.loop();
@@ -124,5 +130,6 @@ public class TestSquareTrajectoryMain {
                 }
             };
         }
+        t.start();
     }
 }
