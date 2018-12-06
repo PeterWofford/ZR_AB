@@ -34,6 +34,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -661,25 +662,29 @@ public class ApiCommandImplementation {
 
     }
 
-    public void runThread(){
-        if (t == null) {
-            t = new Thread() {
-                public void run() {
-                    try {
-                        System.out.println("Loop");
-//                        this.setAttitudeTarget(iHat);
-//                        this.setAttitudeTarget(n_kHat);
-//                        this.setAttitudeTarget(jHat);
-//                        this.setAttitudeTarget(kHat);
-//                        this.setAttitudeTarget(n_jHat);
-                        execute();
-                        Thread.sleep(1000);
-                    }catch(InterruptedException e){
-                        e.printStackTrace();
-                    }
-                }
-            };
-        }
-        t.start();
-    }
+//    public void runThread(){
+//        if (t == null) {
+//            t = new Thread() {
+//                public void run() {
+//                    try {
+//                        System.out.println("Loop");
+////                        this.setAttitudeTarget(iHat);
+////                        this.setAttitudeTarget(n_kHat);
+////                        this.setAttitudeTarget(jHat);
+////                        this.setAttitudeTarget(kHat);
+////                        this.setAttitudeTarget(n_jHat);
+//                        try{
+//                            execute();
+//                        }catch(NoSuchElementException e){
+//                            System.out.println("Queue is emtpy :(");
+//                        }
+//                        Thread.sleep(100000);
+//                    }catch(InterruptedException e){
+//                        e.printStackTrace();
+//                    }
+//                }
+//            };
+//        }
+//        t.start();
+//    }
 }
