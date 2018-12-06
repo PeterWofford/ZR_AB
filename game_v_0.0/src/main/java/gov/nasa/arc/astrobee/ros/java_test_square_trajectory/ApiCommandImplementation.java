@@ -109,6 +109,7 @@ public class ApiCommandImplementation {
 
     /*WayPoint Queue*/
     private List<WayPoint> WaypointQueue;
+    private WayPoint currentWayPoint;
 
     public int getScore() {
         return ABInfo.getScore();
@@ -304,18 +305,77 @@ public class ApiCommandImplementation {
 
 
     public class ZR_API {
+
+        //WayPoint Functions
+
+        public void add(WayPoint wp, int position){
+            ApiCommandImplementation.this.WaypointQueue.add(position,wp);
+        }
+
+        public void addFirst(WayPoint wp){
+            ApiCommandImplementation.this.WaypointQueue.add(0,wp);
+            this.cancelCurrentWayPoint();
+        }
+
+        public WayPoint getCurrentWayPoint(){
+            return currentWayPoint;
+        }
+        public void cancelCurrentWayPoint(){
+            currentWayPoint = null;
+        }
+        public void setWayPointAgression(){
+            //TODO
+        }
+
+        public WayPoint peek(){
+            return ApiCommandImplementation.this.WaypointQueue.get(0);
+        }
+
+        public boolean removeFirst(){
+            return null != ApiCommandImplementation.this.WaypointQueue.remove(0);
+        }
+
+        public boolean removeLast(){
+            int length = ApiCommandImplementation.this.WaypointQueue.size();
+            return null != ApiCommandImplementation.this.WaypointQueue.remove(length-1);
+        }
+
+        public WayPoint remove(int position){
+            return ApiCommandImplementation.this.WaypointQueue.remove(position);
+        }
+
+        //Astrobee Information Functions
+
         public double[] getOrientation() {
             SQuaternion q =  new SQuaternion(getTrustedRobotKinematics().getOrientation());
             return q.getQuat();
+        }
+
+        public double[] getAngularVelocity(){
+            //TODO
+            return new double[10];
         }
 
         public double[] getPosition() {
             SPoint p = SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
             return p.getMy_coords();
         }
-        public void add(WayPoint wp){
-            ApiCommandImplementation.this.WaypointQueue.add(wp);
+
+        public double[] getVelocity() {
+            //TODO
+            return new double[10];
         }
+
+        //Miscellaneous
+        public void DEBUG(){
+            //TODO
+        }
+
+        public double getTime(){
+        return 0.0;
+        }
+
+
     }
     public class Game_API {
         public void setAttitudeTarget(double x, double y, double z) {
@@ -328,6 +388,14 @@ public class ApiCommandImplementation {
         }
         //TODO: Implement Ring info methods
 
+        public double[][] getRings(){
+            //TODO
+            return new double[10][10];
+        }
+
+        public int[] getResults(){
+            return new int[10];
+        }
     }
 
     public SQuaternion getOrientation() {
@@ -654,17 +722,20 @@ public class ApiCommandImplementation {
         return result.hasSucceeded();
     }
 
-    private void execute(){
+    private int execute(){
+        int moved;
         if (WaypointQueue.size() > 0){
-            WayPoint executing = WaypointQueue.remove(0);
-            double[] coords = executing.get_waypoint_point();
+            currentWayPoint = WaypointQueue.remove(0);
+            double[] coords = currentWayPoint.get_waypoint_point();
             Point destination = new Point(coords[0],coords[1],coords[2]);
-            double[] angles = executing.get_waypoint_quat();
+            double[] angles = currentWayPoint.get_waypoint_quat();
             Quaternion quat = new Quaternion((float)(angles[0]),(float)(angles[1]),(float)(angles[2]),(float)(angles[3]));
-            moveTo(destination, quat);
+            moved = moveToValid(destination, quat);
         }else{
             System.out.println("Queue is Empty!");
+            moved = -1;
         }
+        return moved;
 
 
     }
