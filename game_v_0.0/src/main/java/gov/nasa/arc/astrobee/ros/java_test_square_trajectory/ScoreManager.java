@@ -82,7 +82,7 @@ public class ScoreManager {
 
     public static void initial(){
         try {
-            FileWriter writer = new FileWriter("/home/" + System.getProperty("user.name") + "/ZR_AB/out.txt");
+            FileWriter writer = new FileWriter("/home/" + System.getProperty("user.name") + "/ZR_Astrobee/out.txt");
             BufferedWriter out = new BufferedWriter(writer);
             out.write("---------");
             out.newLine();

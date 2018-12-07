@@ -32,13 +32,14 @@ import org.ros.node.DefaultNodeMainExecutor;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.Collections;
-//import java.util.concurrent.TimeUnit;
-//import java.util.concurrent.TimeoutException;
-//import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.*;
+
 
 /**
  * A simple API implementation for sending commands to the Astrobee for an interactive game.
@@ -114,8 +115,21 @@ public class ApiCommandImplementation {
     private List<WayPoint> WaypointQueue;
     private WayPoint currentWayPoint;
 
+
     /*WayPoint Aggression*/
     private int aggression;
+
+    /*access to inner class fucntions*/
+    private static ZR_API zr_instance = null;
+
+    public static ZR_API get_zr_api() {
+        instance = getInstance();
+        if (zr_instance == null) {
+            zr_instance = instance.new ZR_API();
+        }
+        return zr_instance;
+    }
+
 
     public int getScore() {
         return ABInfo.getScore();
@@ -208,25 +222,25 @@ public class ApiCommandImplementation {
             // Waiting until command is done.
             while (!pending.isFinished()) {
                 if (printRobotPosition) {
-                    // Meanwhile, let's get the positioning along the trajectory
+                    //Meanwhile, let's get the positioning along the trajectory
 
-                    //k = robot.getCurrentKinematics();
-                    /*
-                    //rollpitchyaw = rollpitchyaw.quat_rpy(k.getOrientation());
+                    k = robot.getCurrentKinematics();
 
-                    System.out.println(k.getPosition().toString());
+//                    rollpitchyaw = rollpitchyaw.quat_rpy(k.getOrientation());
+
+//                    System.out.println(k.getPosition().toString());
                     //System.out.println(xyz.rpy_cone(rollpitchyaw).toString());
 
                     //SPoint plantvec = xyz.plant_vec(plant.toSPoint(k.getPosition()), plant);
                     //System.out.println(plantvec.toString());
 
                     //System.out.print(xyz.score(plantvec, xyz.rpy_cone(rollpitchyaw)));
-                    System.out.println("-----");
-                    */
+//                    System.out.println("-----");
 
 
-                    //logger.info("Current Position: " + k.getPosition().toString());
-                    //logger.info("Current Orientation" + k.getOrientation().toString());
+
+//                    logger.info("Current Position: " + k.getPosition().toString());
+//                    logger.info("Current Orientation" + k.getOrientation().toString());
                 }
 
                 // Wait a little bit before retry
@@ -286,6 +300,8 @@ public class ApiCommandImplementation {
 
     /**
      * It moves Astrobee to the given point and rotate it to the given orientation.
+     * ZR NOTE:: This is blocking in if called in a thread, but can be cancelled
+     * by the call of stopAllMotion() in a different thread
      *
      * @param goalPoint   Absolute cardinal point (xyz)
      * @param orientation An instance of the Quaternion class.
@@ -308,6 +324,7 @@ public class ApiCommandImplementation {
         }
         return result;
     }
+
 
     public SQuaternion getOrientation() {
         return new SQuaternion(getTrustedRobotKinematics().getOrientation());
@@ -385,12 +402,15 @@ public class ApiCommandImplementation {
         } else {
             Result movement_result = moveTo(goalPoint, orientation);
             if (!movement_result.hasSucceeded()) {
+                System.out.println("there was a moveTo error!");
                 return MOVE_TO_ERROR;
             } else {
                 return SUCCESS;
             }
         }
     }
+
+    // quic
 
     private double getCurrentTime(){
         System.out.println(start_time);
@@ -634,15 +654,16 @@ public class ApiCommandImplementation {
     }
 
     private int execute(){
-        int moved;
-        if (WaypointQueue.size() > 0){
-            currentWayPoint = WaypointQueue.remove(0);
-            double[] coords = currentWayPoint.get_waypoint_point();
+        int moved;      // holds moveToValid return variable
+        if (WaypointQueue.size() > 0) {
+            currentWayPoint = WaypointQueue.remove(0);          // removes first element from the List of WayPoints
+            double[] coords = currentWayPoint.get_waypoint_point(); // gets the coordinates f the
             Point destination = new Point(coords[0],coords[1],coords[2]);
             double[] angles = currentWayPoint.get_waypoint_quat();
             Quaternion quat = new Quaternion((float)(angles[0]),(float)(angles[1]),(float)(angles[2]),(float)(angles[3]));
             moved = moveToValid(destination, quat);
-        }else{
+            System.out.println(moved);
+        } else {
             System.out.println("Queue is Empty!");
             moved = -1;
         }
@@ -651,7 +672,9 @@ public class ApiCommandImplementation {
 
     }
 
+
     public void executionThread(){
+
         if (t == null) {
             t = new Thread() {
                 public void run() {
@@ -663,7 +686,11 @@ public class ApiCommandImplementation {
                             //                        this.setAttitudeTarget(jHat);
                             //                        this.setAttitudeTarget(kHat);
                             //                        this.setAttitudeTarget(n_jHat);
-                            execute();
+                            try {
+                                execute();
+                            }catch(NoSuchElementException e){
+                                System.out.println("Queue is empty :(");
+                            }
                             Thread.sleep(1000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
