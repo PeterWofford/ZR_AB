@@ -111,6 +111,9 @@ public class ApiCommandImplementation {
     private List<WayPoint> WaypointQueue;
     private WayPoint currentWayPoint;
 
+    /*WayPoint Aggression*/
+    private int aggression;
+
     public int getScore() {
         return ABInfo.getScore();
     }
@@ -301,101 +304,6 @@ public class ApiCommandImplementation {
             result = getCommandResult(pending, true);
         }
         return result;
-    }
-
-
-    public class ZR_API {
-
-        //WayPoint Functions
-
-        public void add(WayPoint wp, int position){
-            ApiCommandImplementation.this.WaypointQueue.add(position,wp);
-        }
-
-        public void addFirst(WayPoint wp){
-            ApiCommandImplementation.this.WaypointQueue.add(0,wp);
-            this.cancelCurrentWayPoint();
-        }
-
-        public WayPoint getCurrentWayPoint(){
-            return currentWayPoint;
-        }
-        public void cancelCurrentWayPoint(){
-            currentWayPoint = null;
-        }
-        public void setWayPointAgression(){
-            //TODO
-        }
-
-        public WayPoint peek(){
-            return ApiCommandImplementation.this.WaypointQueue.get(0);
-        }
-
-        public boolean removeFirst(){
-            return null != ApiCommandImplementation.this.WaypointQueue.remove(0);
-        }
-
-        public boolean removeLast(){
-            int length = ApiCommandImplementation.this.WaypointQueue.size();
-            return null != ApiCommandImplementation.this.WaypointQueue.remove(length-1);
-        }
-
-        public WayPoint remove(int position){
-            return ApiCommandImplementation.this.WaypointQueue.remove(position);
-        }
-
-        //Astrobee Information Functions
-
-        public double[] getOrientation() {
-            SQuaternion q =  new SQuaternion(getTrustedRobotKinematics().getOrientation());
-            return q.getQuat();
-        }
-
-        public double[] getAngularVelocity(){
-            //TODO
-            return new double[10];
-        }
-
-        public double[] getPosition() {
-            SPoint p = SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
-            return p.getMy_coords();
-        }
-
-        public double[] getVelocity() {
-            //TODO
-            return new double[10];
-        }
-
-        //Miscellaneous
-        public void DEBUG(){
-            //TODO
-        }
-
-        public double getTime(){
-        return 0.0;
-        }
-
-
-    }
-    public class Game_API {
-        public void setAttitudeTarget(double x, double y, double z) {
-            SVector target = new SVector(x, y, z);
-            setAttitudeTarget(target);
-        }
-
-        public void setAttitudeTarget(SVector target) {
-            ApiCommandImplementation.this.setAttitudeTarget(target);
-        }
-        //TODO: Implement Ring info methods
-
-        public double[][] getRings(){
-            //TODO
-            return new double[10][10];
-        }
-
-        public int[] getResults(){
-            return new int[10];
-        }
     }
 
     public SQuaternion getOrientation() {
@@ -740,7 +648,7 @@ public class ApiCommandImplementation {
 
     }
 
-    public void runThread(){
+    public void executionThread(){
         if (t == null) {
             t = new Thread() {
                 public void run() {
@@ -763,4 +671,111 @@ public class ApiCommandImplementation {
         }
         t.start();
     }
+
+    public class ZR_API {
+
+        //WayPoint Functions
+
+        public void addWayPoint(WayPoint wp, int position){
+            ApiCommandImplementation.this.WaypointQueue.add(position,wp);
+        }
+
+        public void addFirst(WayPoint wp){
+            ApiCommandImplementation.this.WaypointQueue.add(0,wp);
+            this.cancelCurrentWayPoint();
+        }
+
+        public WayPoint getExecutingWayPoint(){
+            return currentWayPoint;
+        }
+
+        public void cancelCurrentWayPoint(){
+            currentWayPoint = null;
+            Result result = stopAllMotion();
+        }
+        public void setWayPointAgression(int i){
+            if(i > 0 && i < 10){
+                ApiCommandImplementation.this.aggression = i;
+                return;
+            }
+            //TODO
+            System.out.println("Invalid agression");
+        }
+
+        public WayPoint peek(){
+            return ApiCommandImplementation.this.WaypointQueue.get(0);
+        }
+
+        public boolean removeFirst(){
+            return null != ApiCommandImplementation.this.WaypointQueue.remove(0);
+        }
+
+        public boolean removeLast(){
+            int length = ApiCommandImplementation.this.WaypointQueue.size();
+            return null != ApiCommandImplementation.this.WaypointQueue.remove(length-1);
+        }
+
+        public WayPoint removeWayPoint(int position){
+            return ApiCommandImplementation.this.WaypointQueue.remove(position);
+        }
+
+        public boolean removeWayPoint(WayPoint wp){
+            return ApiCommandImplementation.this.WaypointQueue.remove(wp);
+        }
+
+        //Astrobee Information Functions
+
+        public double[] getOrientation() {
+            SQuaternion q =  new SQuaternion(getTrustedRobotKinematics().getOrientation());
+            return q.getQuat();
+        }
+
+        public double[] getAngularVelocity(){
+            //TODO
+            return new double[10];
+        }
+
+        public double[] getPosition() {
+            SPoint p = SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
+            return p.getMy_coords();
+        }
+
+        public double[] getVelocity() {
+            //TODO
+            return new double[10];
+        }
+
+        //Miscellaneous
+        public void DEBUG(){
+            //TODO
+        }
+
+        public double getTime(){
+            //TODO
+            return 0.0;
+        }
+
+
+    }
+    public class Game_API {
+        public void setAttitudeTarget(double x, double y, double z) {
+            SVector target = new SVector(x, y, z);
+            setAttitudeTarget(target);
+        }
+
+        public void setAttitudeTarget(SVector target) {
+            ApiCommandImplementation.this.setAttitudeTarget(target);
+        }
+        //TODO: Implement Ring info methods
+
+        public double[][] getRings(){
+            //TODO
+            return new double[10][10];
+        }
+
+        public int[] getResults(){
+            return new int[10];
+        }
+    }
+
 }
