@@ -4,13 +4,12 @@ public class PlayerTemplate{
     //Put fields here
 
     //Setup
-    public PlayerTemplate(){
-
+    public PlayerTemplate(ApiCommandImplementation.ZR_API api, ApiCommandImplementation.Game_API game) {
 
     }
 
     //Continuous loop
-    public void loop(){
+    public void loop() {
 
     }
 }

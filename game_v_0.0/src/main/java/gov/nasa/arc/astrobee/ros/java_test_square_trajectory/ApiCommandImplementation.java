@@ -118,6 +118,7 @@ public class ApiCommandImplementation {
 
     /*access to inner class fucntions*/
     private static ZR_API zr_instance = null;
+    private static Game_API game_instance = null;
 
     public static ZR_API get_zr_api() {
         instance = getInstance();
@@ -125,6 +126,14 @@ public class ApiCommandImplementation {
             zr_instance = instance.new ZR_API();
         }
         return zr_instance;
+    }
+
+    public static Game_API get_game_api() {
+        instance = getInstance();
+        if (game_instance == null) {
+            game_instance = instance.new Game_API();
+        }
+        return game_instance;
     }
 
 
@@ -423,79 +432,6 @@ public class ApiCommandImplementation {
     }
 
     /**
-     * TODO :: Make this return an array, first value being status (score, outside ring, flashlight error, etc), second being
-     * TODO :: ring, third being plant
-     *
-     * @return just an int for now
-     * @throws InterruptedException (in case flashlight fails or gets interrupted)
-     */
-    // COMMENTED OUT BECAUSE WE SWITCHED TO CONNECTING TO RING NODES THEMSELVES
-/*
-    public int pollinate() {
-
-        Kinematics k;
-        k = getTrustedRobotKinematics();
-
-        int result;
-
-        SPoint pos = SPoint.toSPoint(k.getPosition());
-        SPoint[] ring_centers = new SPoint[keepOutZones.length];
-        for (int i = 0; i < keepOutZones.length; i++)
-            ring_centers[i] = keepOutZones[i].get_center();
-        double[] distsSquared = pos.distSquared(ring_centers);
-        SPoint rpy = SPoint.quat_rpy(k.getOrientation());
-
-        if (distsSquared[0] <= Math.pow(KeepOutZone.getAB_collider_radius(), 2)) {
-            SPoint lead = plants1.plant_vec(initial_lead_plant_pos_1, SPoint.toSPoint(k.getPosition()));
-            SPoint[] spawned = plants1.spawn_plants(lead, getCurrentTime());
-
-
-            for(int i = 0; i < plants1.getPlant_number(); i++) {
-                boolean score = plants1.score(spawned[i], plants1.rpy_cone(rpy));
-                if(score){
-                    this.score = Plants.decide_score(i, this.score);
-                }
-            }
-            System.out.print("CURRENT SCORE: ");
-            System.out.println(this.score);
-            result = SCORE_RING_ONE;
-
-        } else if (distsSquared[1] <= Math.pow(KeepOutZone.getAB_collider_radius(), 2)) {
-            SPoint lead = plants2.plant_vec(initial_lead_plant_pos_2, SPoint.toSPoint(k.getPosition()));
-            SPoint[] spawned = plants2.spawn_plants(lead, getCurrentTime());
-
-            for(int i = 0; i < plants2.getPlant_number(); i++) {
-                boolean score = plants2.score(spawned[i], plants2.rpy_cone(rpy));
-                if(score){
-                    this.score = Plants.decide_score(i, this.score);
-                }
-            }
-            System.out.print("CURRENT SCORE: ");
-            System.out.println(this.score);
-            result = SCORE_RING_TWO;
-        } else {
-            System.out.println("NOT IN RING");
-            game.score -= 50;
-            result = NOT_IN_RING_ERROR;
-        }
-        try {
-            Result flashlight = flashlight_shine();
-        } catch (InterruptedException e) {
-            System.out.println("Interrupted Exception!");
-            result = FLASHLIGHT_ERROR;
-        }
-        return result;
-    }
-*/
-
-    /*
-    *   returns an int code of result for each ring
-    *   -1 - no score
-    *   1 - score
-    *   also modifies the game score accordingly and keeps track of pollination attempts
-     */
-
-    /**
      * Executes the pollination command for the Astrobee, shines the flashlight and returns an
      * integer of the result, codes being 0 for misfire, -1 for not in ring, -2 for flashlight error
      * if ring integer, tells the ring number scored in
@@ -512,8 +448,8 @@ public class ApiCommandImplementation {
 
         int kozLength = ringsWPlants.length;
         /*  array for holding results for each ring
-        *   with 0 being out of ring, 1 being successful,
-        *   -1 being a miss */
+         *   with 0 being out of ring, 1 being successful,
+         *   -1 being a miss */
         int[] results = new int[kozLength];
 
         /*  counter for if in ring */
@@ -649,6 +585,70 @@ public class ApiCommandImplementation {
 
         return result.hasSucceeded();
     }
+
+    /**
+     *
+     * @return just an int for now
+     * @throws InterruptedException (in case flashlight fails or gets interrupted)
+     */
+    // COMMENTED OUT BECAUSE WE SWITCHED TO CONNECTING TO RING NODES THEMSELVES
+/*
+    public int pollinate() {
+
+        Kinematics k;
+        k = getTrustedRobotKinematics();
+
+        int result;
+
+        SPoint pos = SPoint.toSPoint(k.getPosition());
+        SPoint[] ring_centers = new SPoint[keepOutZones.length];
+        for (int i = 0; i < keepOutZones.length; i++)
+            ring_centers[i] = keepOutZones[i].get_center();
+        double[] distsSquared = pos.distSquared(ring_centers);
+        SPoint rpy = SPoint.quat_rpy(k.getOrientation());
+
+        if (distsSquared[0] <= Math.pow(KeepOutZone.getAB_collider_radius(), 2)) {
+            SPoint lead = plants1.plant_vec(initial_lead_plant_pos_1, SPoint.toSPoint(k.getPosition()));
+            SPoint[] spawned = plants1.spawn_plants(lead, getCurrentTime());
+
+
+            for(int i = 0; i < plants1.getPlant_number(); i++) {
+                boolean score = plants1.score(spawned[i], plants1.rpy_cone(rpy));
+                if(score){
+                    this.score = Plants.decide_score(i, this.score);
+                }
+            }
+            System.out.print("CURRENT SCORE: ");
+            System.out.println(this.score);
+            result = SCORE_RING_ONE;
+
+        } else if (distsSquared[1] <= Math.pow(KeepOutZone.getAB_collider_radius(), 2)) {
+            SPoint lead = plants2.plant_vec(initial_lead_plant_pos_2, SPoint.toSPoint(k.getPosition()));
+            SPoint[] spawned = plants2.spawn_plants(lead, getCurrentTime());
+
+            for(int i = 0; i < plants2.getPlant_number(); i++) {
+                boolean score = plants2.score(spawned[i], plants2.rpy_cone(rpy));
+                if(score){
+                    this.score = Plants.decide_score(i, this.score);
+                }
+            }
+            System.out.print("CURRENT SCORE: ");
+            System.out.println(this.score);
+            result = SCORE_RING_TWO;
+        } else {
+            System.out.println("NOT IN RING");
+            game.score -= 50;
+            result = NOT_IN_RING_ERROR;
+        }
+        try {
+            Result flashlight = flashlight_shine();
+        } catch (InterruptedException e) {
+            System.out.println("Interrupted Exception!");
+            result = FLASHLIGHT_ERROR;
+        }
+        return result;
+    }
+*/
 
     private int execute(){
         int moved;      // holds moveToValid return variable

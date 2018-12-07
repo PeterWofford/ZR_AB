@@ -13,8 +13,8 @@ public class TestSquareTrajectoryMain {
 
     private static ApiCommandImplementation astrobee = ApiCommandImplementation.getInstance();
     private static ApiCommandImplementation.ZR_API api= null; // astrobee.new zrAPI();
-    private static ApiCommandImplementation.Game_API game = astrobee.new Game_API();
-    private static PlayerTemplate PlayerCode = new PlayerTemplate();
+    private static ApiCommandImplementation.Game_API game = null; // astrobee.new Game_API();
+    private static PlayerTemplate PlayerCode;
 
     // Fixed trajectory points
     private static final Point HOME_POSITION = new Point(2, 0, 4.9);
@@ -54,54 +54,39 @@ public class TestSquareTrajectoryMain {
         // Because log4j doesn't do the needful
         setDefaultUncaughtExceptionHandler(new UnhandledExceptionHandler());
 
-        // Get a unique instance of the Astrobee API in order to command the robot.
+        // Get a unique instance of the ab_info in order to access info about the robot
         ABInfo abInfo = ABInfo.getABInfoInstance();
-        ApiCommandImplementation.ZR_API api = ApiCommandImplementation.get_zr_api();
-        for (int i = 0; i< arrayPoint.length; i++) {
-            System.out.println("length" + arrayPoint.length);
-            System.out.println("on index"+ i);
-            int moved = astrobee.moveToValid(arrayPoint[i], arrayOrient[0]);
-//            ThreadTry t = new ThreadTry();
-//            t.start();
-            System.out.println("move_code"+ moved);
 
-        }
-        System.out.println("done!");
+        // Get unique instances of zr and game api's for allowing Players to command bot
+        ApiCommandImplementation.ZR_API   api  = ApiCommandImplementation.get_zr_api();
+        ApiCommandImplementation.Game_API game = ApiCommandImplementation.get_game_api();
 
-        Result result;
-
-        // giving a waypoint and printing some general info
+        // Give Player Thread access to api's
+        PlayerCode = new PlayerTemplate(api, game);
 
 //        Starting threads
         Point destination = new Point(0,0.6,5.1);
         Quaternion quat = new Quaternion(0.707f,0f,0f,0.707f);
-        astrobee.moveToValid(destination,quat);
+//        astrobee.moveToValid(destination,quat);
         astrobee.executionThread();
         System.out.println("Started Astrobee Thread!");
         RunPlayerThread();
         System.out.println("Started Player Thread!");
-
-//        astrobee.setAttitudeTarget(iHat);
-//        astrobee.setAttitudeTarget(n_kHat);
-//        astrobee.setAttitudeTarget(jHat);
-//        astrobee.setAttitudeTarget(kHat);
-//        astrobee.setAttitudeTarget(n_jHat);
-//        astrobee.setAttitudeTarget(n_iHat);
 
 
         // Loop the points and orientation previously defined.
         /*
         for(int i = 0; i < 100; i++) {
             System.out.println("TIME");
-            System.out.println(api.getCurrentTime());
+            System.out.println(.getCurrentTime());
             Thread.sleep(1000);
         }
 
-
+        // The below is fallback example
         for (int i = 0; i < arrayPoint.length; i++) {
             System.out.println("attempting to move to:: " + SPoint.toSPoint(arrayPoint[i]) + " with quat:: " + arrayOrient[i]);
             System.out.println("another loop");
-            System.out.println(api.moveToValid(arrayPoint[i], arrayOrient[i]));
+            System.out.println(astrobee.moveToValid(arrayPoint[i], arrayOrient[i]));    //make sure movetovalid public
             int counter = 3;
             for (int c = 0; c < counter; c++) {
                 if ( c % 2 == 1) {
@@ -113,13 +98,6 @@ public class TestSquareTrajectoryMain {
             }
         }
         */
-
-
-        /* Will print the elapsed time it took for the calls to execute above */
-       // System.out.println("This is the amount of time it took::" + startUpTest.timeElapsed(System.currentTimeMillis()));
-
-        // Stop the API
-//        astrobee.shutdownFactory();
     }
     static int i = 0;
     public static void RunPlayerThread() {
@@ -136,7 +114,7 @@ public class TestSquareTrajectoryMain {
                         System.out.println("Added WayPoint");
                     }
                     try {
-                        PlayerCode.loop();
+                        PlayerCode.loop();              // calls the body of their loop
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
