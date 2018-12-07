@@ -105,19 +105,21 @@ public class TestSquareTrajectoryMain {
         if (t == null) {
             t = new Thread() {
                 public void run() {
-                    if (i == 0){        // testing movement
-                        WayPoint test1 = new WayPoint(3,0,4.9,0.707,0,0,0.707);
-                        i++;
-                        System.out.println(api);
-                        api.addWayPoint(test1);
+                    while(true) {
+                        if (i == 0) {        // testing movement
+                            WayPoint test1 = new WayPoint(3, 0, 4.9, 0.707, 0, 0, 0.707);
+                            i++;
+                            System.out.println(api);
+                            api.addWayPoint(test1);
 //                        System.out.println("Added WayPoint");
-                    }
-                    try {
-                        System.out.println("starting player code");
-                        PlayerCode.loop();              // calls the body of their loop
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        }
+                        try {
+                            System.out.println("starting player code");
+                            PlayerCode.loop();              // calls the body of their loop
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             };
