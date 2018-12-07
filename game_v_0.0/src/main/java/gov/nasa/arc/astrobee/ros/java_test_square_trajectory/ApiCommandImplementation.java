@@ -32,12 +32,14 @@ import org.ros.node.DefaultNodeMainExecutor;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.Collections;
+
 
 /**
  * A simple API implementation for sending commands to the Astrobee for an interactive game.
@@ -107,7 +109,24 @@ public class ApiCommandImplementation {
     private int score = 0;
 
     /*WayPoint Queue*/
-    public ConcurrentLinkedDeque<WayPoint> WaypointQueue = new ConcurrentLinkedDeque<WayPoint>();
+    private List<WayPoint> WaypointQueue;
+    private WayPoint currentWayPoint;
+
+
+    /*WayPoint Aggression*/
+    private int aggression;
+
+    /*access to inner class fucntions*/
+    private static ZR_API zr_instance = null;
+
+    public static ZR_API get_zr_api() {
+        instance = getInstance();
+        if (zr_instance == null) {
+            zr_instance = instance.new ZR_API();
+        }
+        return zr_instance;
+    }
+
 
     public int getScore() {
         return ABInfo.getScore();
@@ -127,6 +146,7 @@ public class ApiCommandImplementation {
          */
 
         factory = new DefaultRobotFactory();
+        WaypointQueue = Collections.synchronizedList(new ArrayList<WayPoint>());
 
         try {
             // Get the robot
@@ -199,25 +219,25 @@ public class ApiCommandImplementation {
             // Waiting until command is done.
             while (!pending.isFinished()) {
                 if (printRobotPosition) {
-                    // Meanwhile, let's get the positioning along the trajectory
+                    //Meanwhile, let's get the positioning along the trajectory
 
-                    //k = robot.getCurrentKinematics();
-                    /*
-                    //rollpitchyaw = rollpitchyaw.quat_rpy(k.getOrientation());
+                    k = robot.getCurrentKinematics();
 
-                    System.out.println(k.getPosition().toString());
+//                    rollpitchyaw = rollpitchyaw.quat_rpy(k.getOrientation());
+
+//                    System.out.println(k.getPosition().toString());
                     //System.out.println(xyz.rpy_cone(rollpitchyaw).toString());
 
                     //SPoint plantvec = xyz.plant_vec(plant.toSPoint(k.getPosition()), plant);
                     //System.out.println(plantvec.toString());
 
                     //System.out.print(xyz.score(plantvec, xyz.rpy_cone(rollpitchyaw)));
-                    System.out.println("-----");
-                    */
+//                    System.out.println("-----");
 
 
-                    //logger.info("Current Position: " + k.getPosition().toString());
-                    //logger.info("Current Orientation" + k.getOrientation().toString());
+
+//                    logger.info("Current Position: " + k.getPosition().toString());
+//                    logger.info("Current Orientation" + k.getOrientation().toString());
                 }
 
                 // Wait a little bit before retry
@@ -277,6 +297,8 @@ public class ApiCommandImplementation {
 
     /**
      * It moves Astrobee to the given point and rotate it to the given orientation.
+     * ZR NOTE:: This is blocking in if called in a thread, but can be cancelled
+     * by the call of stopAllMotion() in a different thread
      *
      * @param goalPoint   Absolute cardinal point (xyz)
      * @param orientation An instance of the Quaternion class.
@@ -284,7 +306,7 @@ public class ApiCommandImplementation {
      * @return A Result instance carrying data related to the execution.
      * Returns null if the command was NOT execute as a result of an error
      */
-    private Result moveTo(Point goalPoint, Quaternion orientation) {
+    public Result moveTo(Point goalPoint, Quaternion orientation) {
 
         // First, stop all motion
         Result result = stopAllMotion();
@@ -300,33 +322,6 @@ public class ApiCommandImplementation {
         return result;
     }
 
-
-    public class ZR_API {
-        public double[] getOrientation() {
-            SQuaternion q =  new SQuaternion(getTrustedRobotKinematics().getOrientation());
-            return q.getQuat();
-        }
-
-        public double[] getPosition() {
-            SPoint p = SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
-            return p.getMy_coords();
-        }
-        public void add(WayPoint wp){
-            ApiCommandImplementation.this.WaypointQueue.add(wp);
-        }
-    }
-    public class Game_API {
-        public void setAttitudeTarget(double x, double y, double z) {
-            SVector target = new SVector(x, y, z);
-            setAttitudeTarget(target);
-        }
-
-        public void setAttitudeTarget(SVector target) {
-            ApiCommandImplementation.this.setAttitudeTarget(target);
-        }
-        //TODO: Implement Ring info methods
-
-    }
 
     public SQuaternion getOrientation() {
         return new SQuaternion(getTrustedRobotKinematics().getOrientation());
@@ -398,18 +393,21 @@ public class ApiCommandImplementation {
      *                    You may want to use INITIAL_POSITION as an example.
      * @return An int corresponding to the result of the action.
      */
-    private int moveToValid(Point goalPoint, Quaternion orientation) {
+    public int moveToValid(Point goalPoint, Quaternion orientation) {
         if (!validWaypoint(goalPoint)) {
             return VALIDATE_ERROR;
         } else {
             Result movement_result = moveTo(goalPoint, orientation);
             if (!movement_result.hasSucceeded()) {
+                System.out.println("there was a moveTo error!");
                 return MOVE_TO_ERROR;
             } else {
                 return SUCCESS;
             }
         }
     }
+
+    // quic
 
     private double getCurrentTime(){
         System.out.println(start_time);
@@ -652,39 +650,159 @@ public class ApiCommandImplementation {
         return result.hasSucceeded();
     }
 
-    private void execute(){
-        WayPoint executing = WaypointQueue.pop();
-        double[] coords = executing.get_waypoint_point();
-        Point destination = new Point(coords[0],coords[1],coords[2]);
-        double[] angles = executing.get_waypoint_quat();
-        Quaternion quat = new Quaternion((float)(angles[0]),(float)(angles[1]),(float)(angles[2]),(float)(angles[3]));
-        moveToValid(destination, quat);
+    private int execute(){
+        int moved;      // holds moveToValid return variable
+        if (WaypointQueue.size() > 0) {
+            currentWayPoint = WaypointQueue.remove(0);          // removes first element from the List of WayPoints
+            double[] coords = currentWayPoint.get_waypoint_point(); // gets the coordinates f the
+            Point destination = new Point(coords[0],coords[1],coords[2]);
+            double[] angles = currentWayPoint.get_waypoint_quat();
+            Quaternion quat = new Quaternion((float)(angles[0]),(float)(angles[1]),(float)(angles[2]),(float)(angles[3]));
+            moved = moveToValid(destination, quat);
+            System.out.println(moved);
+        } else {
+            System.out.println("Queue is Empty!");
+            moved = -1;
+        }
+        return moved;
+
 
     }
 
-//    public void runThread(){
-//        if (t == null) {
-//            t = new Thread() {
-//                public void run() {
-//                    try {
-//                        System.out.println("Loop");
-////                        this.setAttitudeTarget(iHat);
-////                        this.setAttitudeTarget(n_kHat);
-////                        this.setAttitudeTarget(jHat);
-////                        this.setAttitudeTarget(kHat);
-////                        this.setAttitudeTarget(n_jHat);
-//                        try{
-//                            execute();
-//                        }catch(NoSuchElementException e){
-//                            System.out.println("Queue is emtpy :(");
-//                        }
-//                        Thread.sleep(100000);
-//                    }catch(InterruptedException e){
-//                        e.printStackTrace();
-//                    }
-//                }
-//            };
-//        }
-//        t.start();
-//    }
+
+    public void executionThread(){
+
+        if (t == null) {
+            t = new Thread() {
+                public void run() {
+                    while(true) {
+                        try {
+                            System.out.println("Loop");
+                            //                        this.setAttitudeTarget(iHat);
+                            //                        this.setAttitudeTarget(n_kHat);
+                            //                        this.setAttitudeTarget(jHat);
+                            //                        this.setAttitudeTarget(kHat);
+                            //                        this.setAttitudeTarget(n_jHat);
+                            try {
+                                execute();
+                            }catch(NoSuchElementException e){
+                                System.out.println("Queue is empty :(");
+                            }
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            };
+        }
+        t.start();
+    }
+
+    public class ZR_API {
+
+        //WayPoint Functions
+
+        public void addWayPoint(WayPoint wp, int position){
+            ApiCommandImplementation.this.WaypointQueue.add(position,wp);
+        }
+
+        public void addFirst(WayPoint wp){
+            ApiCommandImplementation.this.WaypointQueue.add(0,wp);
+            this.cancelCurrentWayPoint();
+        }
+
+        public WayPoint getExecutingWayPoint(){
+            return currentWayPoint;
+        }
+
+        public void cancelCurrentWayPoint(){
+            currentWayPoint = null;
+            Result result = stopAllMotion();
+        }
+        public void setWayPointAgression(int i){
+            if(i > 0 && i < 10){
+                ApiCommandImplementation.this.aggression = i;
+                return;
+            }
+            //TODO
+            System.out.println("Invalid agression");
+        }
+
+        public WayPoint peek(){
+            return ApiCommandImplementation.this.WaypointQueue.get(0);
+        }
+
+        public boolean removeFirst(){
+            return null != ApiCommandImplementation.this.WaypointQueue.remove(0);
+        }
+
+        public boolean removeLast(){
+            int length = ApiCommandImplementation.this.WaypointQueue.size();
+            return null != ApiCommandImplementation.this.WaypointQueue.remove(length-1);
+        }
+
+        public WayPoint removeWayPoint(int position){
+            return ApiCommandImplementation.this.WaypointQueue.remove(position);
+        }
+
+        public boolean removeWayPoint(WayPoint wp){
+            return ApiCommandImplementation.this.WaypointQueue.remove(wp);
+        }
+
+        //Astrobee Information Functions
+
+        public double[] getOrientation() {
+            SQuaternion q =  new SQuaternion(getTrustedRobotKinematics().getOrientation());
+            return q.getQuat();
+        }
+
+        public double[] getAngularVelocity(){
+            //TODO
+            return new double[10];
+        }
+
+        public double[] getPosition() {
+            SPoint p = SPoint.toSPoint(getTrustedRobotKinematics().getPosition());
+            return p.getMy_coords();
+        }
+
+        public double[] getVelocity() {
+            //TODO
+            return new double[10];
+        }
+
+        //Miscellaneous
+        public void DEBUG(){
+            //TODO
+        }
+
+        public double getTime(){
+            //TODO
+            return 0.0;
+        }
+
+
+    }
+    public class Game_API {
+        public void setAttitudeTarget(double x, double y, double z) {
+            SVector target = new SVector(x, y, z);
+            setAttitudeTarget(target);
+        }
+
+        public void setAttitudeTarget(SVector target) {
+            ApiCommandImplementation.this.setAttitudeTarget(target);
+        }
+        //TODO: Implement Ring info methods
+
+        public double[][] getRings(){
+            //TODO
+            return new double[10][10];
+        }
+
+        public int[] getResults(){
+            return new int[10];
+        }
+    }
+
 }
