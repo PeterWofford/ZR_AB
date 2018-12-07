@@ -657,7 +657,7 @@ public class ApiCommandImplementation {
             double[] angles = currentWayPoint.get_waypoint_quat();
             Quaternion quat = new Quaternion((float)(angles[0]),(float)(angles[1]),(float)(angles[2]),(float)(angles[3]));
             moved = moveToValid(destination, quat);
-            System.out.println(moved);
+            System.out.println("moved code:: " + moved);
         } else {
             System.out.println("Queue is Empty!");
             moved = -1;
@@ -675,12 +675,7 @@ public class ApiCommandImplementation {
                 public void run() {
                     while(true) {
                         try {
-                            System.out.println("Loop");
-                            //                        this.setAttitudeTarget(iHat);
-                            //                        this.setAttitudeTarget(n_kHat);
-                            //                        this.setAttitudeTarget(jHat);
-                            //                        this.setAttitudeTarget(kHat);
-                            //                        this.setAttitudeTarget(n_jHat);
+                            System.out.println("starting exec thread");
                             try {
                                 execute();
                             }catch(NoSuchElementException e){
@@ -703,8 +698,10 @@ public class ApiCommandImplementation {
 
         //WayPoint Functions
 
-        public void addWayPoint(WayPoint wp, int position){
-            ApiCommandImplementation.this.WaypointQueue.add(position,wp);
+        public void addWayPoint(WayPoint wp/*, int position*/){
+            ApiCommandImplementation.this.WaypointQueue.add(/*position*/wp);
+            System.out.println("waypoint added to wayPoint Queue!");
+            System.out.println(WaypointQueue);
         }
 
         public void addFirst(WayPoint wp){
@@ -712,7 +709,7 @@ public class ApiCommandImplementation {
             this.cancelCurrentWayPoint();
         }
 
-        public WayPoint getExecutingWayPoint(){
+        public WayPoint getExecutingWayPoint() {
             return currentWayPoint;
         }
 
@@ -720,6 +717,7 @@ public class ApiCommandImplementation {
             currentWayPoint = null;
             Result result = stopAllMotion();
         }
+
         public void setWayPointAgression(int i){
             if(i > 0 && i < 10){
                 ApiCommandImplementation.this.aggression = i;
@@ -729,8 +727,14 @@ public class ApiCommandImplementation {
             System.out.println("Invalid agression");
         }
 
-        public WayPoint peek(){
-            return ApiCommandImplementation.this.WaypointQueue.get(0);
+        // added runtime error catching
+        public WayPoint peek() {
+            try {
+                return ApiCommandImplementation.this.WaypointQueue.get(0);
+            } catch (IndexOutOfBoundsException e) {
+                e.printStackTrace();
+                return null;
+            }
         }
 
         public boolean removeFirst(){
@@ -739,7 +743,8 @@ public class ApiCommandImplementation {
 
         public boolean removeLast(){
             int length = ApiCommandImplementation.this.WaypointQueue.size();
-            return null != ApiCommandImplementation.this.WaypointQueue.remove(length-1);
+            if (null != ApiCommandImplementation.this.WaypointQueue.remove(length-1)) return true;
+            else return false;
         }
 
         public WayPoint removeWayPoint(int position){

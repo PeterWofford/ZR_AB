@@ -58,8 +58,8 @@ public class TestSquareTrajectoryMain {
         ABInfo abInfo = ABInfo.getABInfoInstance();
 
         // Get unique instances of zr and game api's for allowing Players to command bot
-        ApiCommandImplementation.ZR_API   api  = ApiCommandImplementation.get_zr_api();
-        ApiCommandImplementation.Game_API game = ApiCommandImplementation.get_game_api();
+        api  = ApiCommandImplementation.get_zr_api();
+        game = ApiCommandImplementation.get_game_api();
 
         // Give Player Thread access to api's
         PlayerCode = new PlayerTemplate(api, game);
@@ -105,15 +105,15 @@ public class TestSquareTrajectoryMain {
         if (t == null) {
             t = new Thread() {
                 public void run() {
-                    if (i == 0){
-                        WayPoint test1 = new WayPoint(0,0.6,5.1,0.707,0,0,0.707);
-//                        WayPoint base = new WayPoint();
+                    if (i == 0){        // testing movement
+                        WayPoint test1 = new WayPoint(3,0,4.9,0.707,0,0,0.707);
                         i++;
-                        api.addWayPoint(test1,0);
-//                        api.add(base);
-                        System.out.println("Added WayPoint");
+                        System.out.println(api);
+                        api.addWayPoint(test1);
+//                        System.out.println("Added WayPoint");
                     }
                     try {
+                        System.out.println("starting player code");
                         PlayerCode.loop();              // calls the body of their loop
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
