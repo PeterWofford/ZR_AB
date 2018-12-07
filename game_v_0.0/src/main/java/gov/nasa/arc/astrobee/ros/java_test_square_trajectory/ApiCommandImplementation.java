@@ -32,13 +32,14 @@ import org.ros.node.DefaultNodeMainExecutor;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.Collections;
-//import java.util.concurrent.TimeUnit;
-//import java.util.concurrent.TimeoutException;
-//import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.*;
+
 
 /**
  * A simple API implementation for sending commands to the Astrobee for an interactive game.
@@ -116,12 +117,12 @@ public class ApiCommandImplementation {
     private int aggression;
 
     /*access to inner class fucntions*/
-    private static zrAPI zr_instance = null;
+    private static ZR_API zr_instance = null;
 
-    public static zrAPI get_zr_api() {
+    public static ZR_API get_zr_api() {
         instance = getInstance();
         if (zr_instance == null) {
-            zr_instance = instance.new zrAPI();
+            zr_instance = instance.new ZR_API();
         }
         return zr_instance;
     }
@@ -668,6 +669,7 @@ public class ApiCommandImplementation {
 
     }
 
+
     public void executionThread(){
 
         if (t == null) {
@@ -681,7 +683,11 @@ public class ApiCommandImplementation {
                             //                        this.setAttitudeTarget(jHat);
                             //                        this.setAttitudeTarget(kHat);
                             //                        this.setAttitudeTarget(n_jHat);
-                            execute();
+                            try {
+                                execute();
+                            }catch(NoSuchElementException e){
+                                System.out.println("Queue is empty :(");
+                            }
                             Thread.sleep(1000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
