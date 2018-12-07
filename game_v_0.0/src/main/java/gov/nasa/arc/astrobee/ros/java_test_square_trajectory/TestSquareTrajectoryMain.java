@@ -12,7 +12,7 @@ public class TestSquareTrajectoryMain {
     private static Thread t;
 
     private static ApiCommandImplementation astrobee = ApiCommandImplementation.getInstance();
-    private static ApiCommandImplementation.ZR_API api= astrobee.new ZR_API();
+    private static ApiCommandImplementation.zrAPI api= null; // astrobee.new zrAPI();
     private static ApiCommandImplementation.Game_API game = astrobee.new Game_API();
     private static PlayerTemplate PlayerCode = new PlayerTemplate();
 
@@ -39,7 +39,7 @@ public class TestSquareTrajectoryMain {
     private static final Quaternion ORIENT_4 = new Quaternion(0, 0.3827f, 0, 0.9239f);
 
     // Defining trajectory. Fixed positions and orientations. An orientation for each position.
-    private static Point[] arrayPoint = { POINT_3, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4, POINT_4};
+    private static Point[] arrayPoint = { POINT_3, POINT_4, POINT_4, POINT_4, POINT_3, POINT_4, POINT_4, POINT_4, POINT_4};
     private static Quaternion[] arrayOrient = {LEFT_FACING, DEFAULT_ORIENT, ORIENT_1, DEFAULT_ORIENT, ORIENT_2, DEFAULT_ORIENT, ORIENT_3, DEFAULT_ORIENT, ORIENT_4};
 
     private static final SVector iHat = new SVector(1, 0, 0);
@@ -56,12 +56,26 @@ public class TestSquareTrajectoryMain {
 
         // Get a unique instance of the Astrobee API in order to command the robot.
         ABInfo abInfo = ABInfo.getABInfoInstance();
+        api = ApiCommandImplementation.get_zr_api();
+        for (int i = 0; i< arrayPoint.length; i++) {
+            System.out.println("length" + arrayPoint.length);
+            System.out.println("on index"+ i);
+            int moved = astrobee.moveToValid(arrayPoint[i], arrayOrient[0]);
+//            ThreadTry t = new ThreadTry();
+//            t.start();
+            System.out.println("move_code"+ moved);
+
+        }
+        System.out.println("done!");
 
         Result result;
+
+        // giving a waypoint and printing some general info
+
         //Starting threads
-        Point destination = new Point(0,0.6,5.1);
-        Quaternion quat = new Quaternion(0.707f,0f,0f,0.707f);
-        astrobee.moveTo(destination,quat);
+//        Point destination = new Point(0,0.6,5.1);
+//        Quaternion quat = new Quaternion(0.707f,0f,0f,0.707f);
+//        astrobee.moveToValid(destination,quat);
 //        astrobee.runThread();
 //        System.out.println("Started Astrobee Thread!");
 //        RunPlayerThread();
@@ -117,7 +131,7 @@ public class TestSquareTrajectoryMain {
                         WayPoint test1 = new WayPoint(0,0.6,5.1,0.707,0,0,0.707);
 //                        WayPoint base = new WayPoint();
                         i++;
-                        api.add(test1);
+                        api.add(test1,0);
 //                        api.add(base);
                         System.out.println("Added WayPoint");
                     }
