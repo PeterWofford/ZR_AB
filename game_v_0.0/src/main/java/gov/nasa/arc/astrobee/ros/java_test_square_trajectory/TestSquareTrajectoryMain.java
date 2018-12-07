@@ -12,7 +12,7 @@ public class TestSquareTrajectoryMain {
     private static Thread t;
 
     private static ApiCommandImplementation astrobee = ApiCommandImplementation.getInstance();
-    private static ApiCommandImplementation.zrAPI api= null; // astrobee.new zrAPI();
+    private static ApiCommandImplementation.ZR_API api= null; // astrobee.new zrAPI();
     private static ApiCommandImplementation.Game_API game = astrobee.new Game_API();
     private static PlayerTemplate PlayerCode = new PlayerTemplate();
 
@@ -56,7 +56,7 @@ public class TestSquareTrajectoryMain {
 
         // Get a unique instance of the Astrobee API in order to command the robot.
         ABInfo abInfo = ABInfo.getABInfoInstance();
-        api = ApiCommandImplementation.get_zr_api();
+        ApiCommandImplementation.ZR_API api = ApiCommandImplementation.get_zr_api();
         for (int i = 0; i< arrayPoint.length; i++) {
             System.out.println("length" + arrayPoint.length);
             System.out.println("on index"+ i);
@@ -72,14 +72,14 @@ public class TestSquareTrajectoryMain {
 
         // giving a waypoint and printing some general info
 
-        //Starting threads
-//        Point destination = new Point(0,0.6,5.1);
-//        Quaternion quat = new Quaternion(0.707f,0f,0f,0.707f);
-//        astrobee.moveToValid(destination,quat);
-//        astrobee.runThread();
-//        System.out.println("Started Astrobee Thread!");
-//        RunPlayerThread();
-//        System.out.println("Started Player Thread!");
+//        Starting threads
+        Point destination = new Point(0,0.6,5.1);
+        Quaternion quat = new Quaternion(0.707f,0f,0f,0.707f);
+        astrobee.moveToValid(destination,quat);
+        astrobee.executionThread();
+        System.out.println("Started Astrobee Thread!");
+        RunPlayerThread();
+        System.out.println("Started Player Thread!");
 
 //        astrobee.setAttitudeTarget(iHat);
 //        astrobee.setAttitudeTarget(n_kHat);
@@ -131,7 +131,7 @@ public class TestSquareTrajectoryMain {
                         WayPoint test1 = new WayPoint(0,0.6,5.1,0.707,0,0,0.707);
 //                        WayPoint base = new WayPoint();
                         i++;
-                        api.add(test1,0);
+                        api.addWayPoint(test1,0);
 //                        api.add(base);
                         System.out.println("Added WayPoint");
                     }
