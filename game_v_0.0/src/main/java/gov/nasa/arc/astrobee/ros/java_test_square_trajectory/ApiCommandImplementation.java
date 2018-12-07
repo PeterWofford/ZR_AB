@@ -66,7 +66,6 @@ public class ApiCommandImplementation {
     private static final int MISS_ERROR = 0;
     private static final int NOT_IN_RING_ERROR = -1;
     private static final int FLASHLIGHT_ERROR = -2;
-    private Thread t = null;
 
     // The instance to access this class
     private static ApiCommandImplementation instance = null;
@@ -136,10 +135,9 @@ public class ApiCommandImplementation {
         return game_instance;
     }
 
-
-    public int getScore() {
-        return ABInfo.getScore();
-    }
+    /*Threads for execution and stopping(?)*/
+    private Thread exec_t = null;
+    // private Thread stop_t = null
 
     /**
      * Private constructor that prevents other objects from creating instances of this class.
@@ -672,8 +670,8 @@ public class ApiCommandImplementation {
 
     public void executionThread(){
 
-        if (t == null) {
-            t = new Thread() {
+        if (exec_t == null) {
+            exec_t = new Thread() {
                 public void run() {
                     while(true) {
                         try {
@@ -696,8 +694,10 @@ public class ApiCommandImplementation {
                 }
             };
         }
-        t.start();
+        exec_t.start();
     }
+
+
 
     public class ZR_API {
 
@@ -795,13 +795,17 @@ public class ApiCommandImplementation {
         }
         //TODO: Implement Ring info methods
 
-        public double[][] getRings(){
+        public double[][] getRings() {
             //TODO
             return new double[10][10];
         }
 
-        public int[] getResults(){
+        public int[] getResults() {
             return new int[10];
+        }
+
+        public int getScore() {
+            return ABInfo.getScore();
         }
     }
 
