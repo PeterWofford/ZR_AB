@@ -65,7 +65,10 @@ public class ApiCommandImplementation {
     private static final int MISS_ERROR = 0;
     private static final int NOT_IN_RING_ERROR = -1;
     private static final int FLASHLIGHT_ERROR = -2;
-    private Thread t = null;
+
+    /*Threads*/
+    private Thread t = null; //Execution Thread
+
 
     // The instance to access this class
     private static ApiCommandImplementation instance = null;
@@ -692,6 +695,9 @@ public class ApiCommandImplementation {
         public void cancelCurrentWayPoint(){
             currentWayPoint = null;
             Result result = stopAllMotion();
+            if (!result.hasSucceeded()){
+                System.out.println("Unable to cancel WayPoint");
+            }
         }
         public void setWayPointAgression(int i){
             if(i > 0 && i < 10){
